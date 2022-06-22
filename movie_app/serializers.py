@@ -1,7 +1,25 @@
 from rest_framework import serializers
-from .models import Director, Movie, Review
+from .models import Director, Movie, Review, Category, Tag
+
+class ReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = '__all__'
+
+
+class CategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Category
+        fields = 'id name'.split()
+
+class TagsSerializer(serializers.ModelSerializer):
+    class Meta:
+        name = Tag
+        fields = 'id name'.split()
+
 
 class DirectorSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Director
         fields = '__all__'
@@ -13,22 +31,28 @@ class DirectorDetailSerializer(serializers.ModelSerializer):
 
 
 class MovieSerializer(serializers.ModelSerializer):
-    class Kino:
+    category = CategorySerializer()
+    tags = TagsSerializer(many=True)
+    tag_list = serializers.SerializerMethodField()
+
+    class Meta:
         model = Movie
-        fields = '__all__'
+        fields = 'id title category tags rating tag_list'.split()
+
+    def get_tag_list(self, movie):
+        word = self.context['word']
+        return [i.name for i in movie.tags.all()]
+
+
 
 class MovieDetailSerializer(serializers.ModelSerializer):
-    class Kino:
+    reviews = ReviewSerializer(many=True)
+    class Meta:
         model = Movie
-        fields = 'id name'.split()
+        fields = 'id title description duration rating tag_list reviews'.split()
 
-
-class ReviewSerializer(serializers.ModelSerializer):
-    class Review:
-        model = Review
-        fields = '__all__'
 
 class ReviewDetailSerializer(serializers.ModelSerializer):
-    class Review:
+    class Meta:
         model = Review
         fields = 'id name'.split()

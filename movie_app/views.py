@@ -1,3 +1,4 @@
+from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import Director, Movie, Review
@@ -25,12 +26,20 @@ def director_detail_view(request, id):
 @api_view(['GET'])
 def movie_list_view(request):
     movies = Movie.objects.all()
-    data = MovieSerializer(movies, many=True).data
+    word = 'B'
+    data = MovieSerializer(movies, many=True,
+                           context={'word':word}).data
     return Response(data=data)
 
 @api_view(['GET'])
 def movie_detail_view(request, id):
-    movies = Movie.objects.get(id=id)
+    try:
+        movies = Movie.objects.get(id=id)
+    except Movie.DoesNotExist:
+        return Response(status=status.HHTP_4o4_NOT_FOUND,
+                        data={'error': 'Product not found'})
+    reviews = movies.reviews.all()
+    reviews = Review.objects.filter(movie=movies)
     data = MovieDetailSerializer(movies, many=False).data
     return Response(data=data)
 
