@@ -31,7 +31,7 @@ class Movie(models.Model):
     tags = models.ManyToManyField(Tag, blank=True)
     title = models.CharField(max_length=100)
     description = models.TextField()
-    duration = models.DurationField()
+    duration = models.DurationField(null=True)
     director = models.ForeignKey(Director,
                                  on_delete=models.CASCADE,
                                  null=True)
@@ -41,7 +41,7 @@ class Movie(models.Model):
 
     @property
     def tag_list(self):
-        return [i for i in self.tags.all()]
+        return [i.name for i in self.tags.all()]
 
     @property
     def rating(self):
