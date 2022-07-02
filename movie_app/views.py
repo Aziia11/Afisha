@@ -1,11 +1,39 @@
 from rest_framework import status
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.response import Response
 from .models import Director, Movie, Review
 from .serializers import DirectorSerializer, DirectorDetailSerializer, MovieSerializer, MovieDetailSerializer, ReviewSerializer,\
-    ReviewDetailSerializer, MovieValidateSerializer, DirectorValidateSerializer, ReviewValidateSerializer
+    ReviewDetailSerializer, MovieValidateSerializer, DirectorValidateSerializer, ReviewValidateSerializer, UserLoginSerializer, UserCreateSerializer
 
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import User
+from rest_framework.permissions import IsAuthenticated
 # Create your views here.
+@api_view(['POST'])
+def register_view(request):
+    serializer = UserCreateSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = User.objects.create_user(**serializer.validated_data)
+    return  Response(status=status.HTTP_201_CREATED,
+                     data={'user_id': user.id})
+
+
+@api_view(['POST'])
+def login_view(request):
+    serializer = UserLoginSerializer(data=request.data)
+    serializer.is_valid(raise_exception=True)
+    user = authenticate(**serializer.validated_data)
+    #user = authenticate(username=serializer.validated_data['username'],
+                        #password=serializer.validated_data['password'])
+    if user is not None:
+        try:
+            token = Token.objects.get(user=user)
+        except Token.DoesNotExist:
+            token = Token.objects.create(user=user)
+        return Response(data={'key': token.key})
+    return Response(status=status.HTTP_403_FORBIDDEN,
+                    data={'error': 'Your data was not found'})
 @api_view(['GET'])
 def static_data_view(request):
     dict_ = {
@@ -55,7 +83,9 @@ def director_detail_view(request, id):
         return Response(data=DirectorDetailSerializer(directors).data)
 
 @api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
 def movie_list_view(request):
+    print(request.user)
     if request.method == 'GET':
         movies = Movie.objects.all()
         word = 'B'
