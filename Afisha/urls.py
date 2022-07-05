@@ -16,18 +16,29 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from movie_app import views
+from . import swagger
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/v1/static_data/', views.static_data_view),
-    path('api/v1/directors/', views.director_list_view),
-    path('api/v1/directors/<int:id>/', views.director_detail_view),
-    path('api/v1/movies/', views.movie_list_view),
-    path('api/v1/movies/<int:id>/', views.movie_detail_view),
-    path('api/v1/reviews/', views.review_list_view),
-    path('api/v1/reviews/<int:id>/', views.review_detail_view),
-    path('api/v1/login/', views.login_view),
-    path('api/v1/register/', views.register_view),
+    path('api/v1/directors/', views, views.DirectorListAPIView.as_view()),
+    path('api/v1/directors/<int:id>/', views.DirectorDetailAPIView.as_view()),
+    path('api/v1/movies/', views.MovieListAPIView.as_view()),
+    path('api/v1/movies/<int:id>/', views.MovieDetailAPIView),
+    path('api/v1/reviews/', views.ReviewListAPIView),
+    path('api/v1/reviews/<int:id>/', views.ReviewDetailSerializer),
+    path('api/v1/login/', views.LoginAPIView.as_view()),
+    path('api/v1/register/', views.RegisterAPIView.as_view()),
+    path('api/v1/categories/', views.CategoryListAPIView.as_view()),
+    path('api/v1/categories/<int:pk>/', views.CategoryItemUpdateDeleteAPIview.as_view()),
+    path('api/v1/tags/', views.TagModelViewSet.as_view({'get': 'list',
+                                                     'post': 'create'})),
+    path('api/v1/tags/<int:pk>/', views.TagModelViewSet.as_view({'get': 'retrieve',
+                                                            'put': 'update',
+                                                            'delete': 'destroy'}))
+
+
 
 
 ]
+urlpatterns += swagger.urlpatterns
